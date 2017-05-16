@@ -268,12 +268,38 @@ router.route('/messages/:message_id')
 					}
 				});
     		}
-				//res.json(call);
 		});
-
-
 	})
 
+//ARGSkey: "call_id": id of the call 
+	router.route('/calls/:call_id')
+		.delete(function(req, res){
+/*			Call.findById(req.params.call_id, function(error, call){
+				if(error)
+					res.send(error)
+				else{
+					call.remove();
+					res.json({ message: 'Successfully deleted message!' });
+				}	
+			});
+*/
+			Call.findOneAndRemove({'_id': req.params.call_id}, function(err, call) {
+				//console.log("CALL INSTANCE "+call)
+			    if(call){
+			    	call.remove();
+			    	res.json({message: "Call removed Successfully"});
+			    }
+			    else
+			    	res.json({message: "Call not find"});
+			});
+
+		    /*Call.remove( {_id: req.params.call_id}, function(err, call) {
+            if (err)
+                res.send(err);
+ 			else
+            	res.json({ message: 'Successfully deleted message!' });
+        });*/
+	});
 
 
 module.exports = router;
