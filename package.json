@@ -1,0 +1,16 @@
+{
+  "name": "clickvalidationbackend",
+  "version": "1.0.0",
+  "description": "Backend for a Validation app for the Click project. It simulates a device and its functionalities",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Diego MEllo",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.2",
+    "mongoose": "~4.1.0",
+    "body-parser": "~1.13.3"
+  }
+}
