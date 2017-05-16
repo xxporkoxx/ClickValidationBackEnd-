@@ -8,9 +8,11 @@ var patientSchema   = new Schema({
   	unique: true
   	},
   age:     { type: Number, min: 18, max: 100 },
+  gender: {type: String, enum: ['m','f']},
   disease: String,
-  caretakers: [{ type: Schema.Types.Mixed, ref: 'CareTaker' }],
-  calls: [{ type: Schema.Types.Mixed, ref: 'Call' }]
+  patientdegree: Number,
+  caretakers: [{ type: Schema.Types.ObjectId, ref: 'CareTaker' }],
+  calls: [{ type: Schema.Types.ObjectId, ref: 'Call' }]
 });
  
 module.exports = mongoose.model('Patient', patientSchema);

@@ -89,7 +89,11 @@ router.route('/messages/:message_id')
     });
 
 
-//PATIENT ROUTES
+
+
+
+
+//PATIENTS ROUTES
 	router.route('/patients').get(
 		function(req,res){
 			Patient.find(function(err, patients){
@@ -99,14 +103,27 @@ router.route('/messages/:message_id')
 			});
 		});
 
-    router.route('/patients/:patient_name').get(
-		function(req,res){
-		Patient.findOne({'name': { $regex : new RegExp( req.params.patient_name, "i") }},function(error, patients){
-			if(error)
-				res.send(err);
-			else
-				res.json(patients);
+	function findPatientFromName(patientName, res){
+		Patient.findOne({'name': { $regex : new RegExp( patientName, "i") }},function(error, patient){
+			if(patient){
+				console.log("Patient "+patient);
+				res(patient);
+			}
+			else{
+				console.log("Errl "+error)
+				res(error);
+			}
 			});	
+	}
+
+    router.route('/patients/:patient_name').get(
+		function(req,res){		
+			findPatientFromName(req.params.patient_name, function(patientObj){
+				if(patientObj != null)
+					res.send(patientObj)
+				else
+					res.json({message: "Patient Not Found"});
+			});
 		});
 
 	/*router.route('/patients/:patient_id')
@@ -125,16 +142,18 @@ router.route('/messages/:message_id')
 			patient.name 	= req.body.name;
 			patient.age 	= req.body.age;
 			patient.disease = req.body.disease;
+			patient.gender 	= req.body.gender;
+			patient.patientdegree = req.body.patientdegree;
 
 			patient.save(function(error){
 				if (error)
       				res.json({error: "Error creating patient: Name must be unique and required "});
     			else
-					res.json({message: "Patient created"});		
+					res.json(patient);		
 			});
 	})
 
-//Ainda não foi testada essa função  <-------------- EM LOOP INFINITO
+
 //ARGS:    	patientName: Nome do Paciente
 //			careTakerName: nome do cuidador
 //	A função conecta os dois, colocando o cuidador dentro do model do paciente
@@ -147,8 +166,8 @@ router.route('/messages/:message_id')
 				//console.log("caretakername "+req.body.careTakerName+"patient OBJ:"+patient)
 				findCareTakerFromName(req.body.careTakerName, function(careTakerObj){
 					if(careTakerObj!=null){
-						console.log("careTaker "+careTakerObj);
-						patient.caretakers.push(careTakerObj);
+						console.log("careTaker "+careTakerObj._id);
+						patient.caretakers.push(careTakerObj._id);
 						patient.save(function(error){
 							if(error)
 								res.json({message: "Error saving the push to caretakers"});
@@ -162,8 +181,6 @@ router.route('/messages/:message_id')
 			}
 			});	
 		});
-//<-------------------------------------------------- LOOP INFINITO
-
 
 	function findCareTakerFromName(careTakerName, res){
 		CareTaker.findOne({'name': { $regex : new RegExp( careTakerName, "i") }},function(error, careTaker){
@@ -176,12 +193,9 @@ router.route('/messages/:message_id')
 
 
 
-			//var careTakerId = findCareTakerIdFromName( req.body.careTakerName);
 
 
-
-
-//CARETAKERS
+//CARETAKERS ROUTES
 
 	router.route('/caretakers').get(
 		function(req,res){
@@ -192,7 +206,6 @@ router.route('/messages/:message_id')
 			});
 		});
 
-//Concertar essa função
 	router.route('/caretakers').post(
 		function(req,res){
 			var careTaker = new CareTaker();
@@ -209,6 +222,58 @@ router.route('/messages/:message_id')
 			});
 	})
 	
+
+
+//CALL ROUTES
+	router.route('/calls').get(
+		function(req,res){
+			Call.find(function(err, calls){
+				if(err)
+					res.send(err);
+				res.json(calls);
+			});
+		})
+
+/*ARGSkey: 	"updated": data da chamada
+			"calltype": numero que identifica o tipo de chamada : 1-SOS / 2-BANHEIRO / 3-ASSISTENCIA / 4-SEDE
+			"callstatus": numero que identifica 
+			o status atual da chamada :	CALL_STATUS_INITIALIZATION = 0;    
+										CALL_STATUS_WATING_TO_SERVE = 1;    
+										CALL_STATUS_ON_THE_WAY = 2;    
+										CALL_STATUS_SERVED = 3;
+			"patient_id": id do paciente que esta fazendo a chamada*/
+
+	.post(function(req,res){
+		var call = new Call();
+
+		call.updated = req.body.updated;
+		call.calltype = req.body.calltype;
+		call.callstatus = req.body.callstatus;
+
+		call.save(function(error){
+			if (error)
+      			res.json({error: "Error creating call"});
+    		else{
+    			Patient.findById(req.body.patientid,function(error,patient){
+					if(error)
+						res.json({message: "Could not found patient ID: "+req.body.patientid});
+					else{
+						patient.calls.push(call._id);
+						patient.save(function(error){
+						if(error)
+							res.json({message: "Error saving the push to calls"});
+						else
+							res.json(patient);
+						});
+					}
+				});
+    		}
+				//res.json(call);
+		});
+
+
+	})
+
 
 
 module.exports = router;
