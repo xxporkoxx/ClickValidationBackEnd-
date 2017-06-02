@@ -13,4 +13,8 @@
     "mongoose": "~4.1.0",
     "body-parser": "~1.13.3"
   }
+  "engines" : {
+    "node": "4.2.6"
+    "npm": "2.14.12"
+  }
 }

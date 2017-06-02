@@ -4,7 +4,8 @@ var bodyParser = require('body-parser');
 var routes     = require('./routes');
 
 var mongoose = require("mongoose");
-mongoose.connect('mongodb://localhost/restdb')
+mongoURI = 'mongodb://localhost/restdb';
+mongoose.connect(process.env.MONGOLAB_URI || mongoURI);
  
 // express app will use body-parser to get data from POST
 app.use(bodyParser.urlencoded({ extended: true }));
