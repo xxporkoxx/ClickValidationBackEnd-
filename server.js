@@ -6,10 +6,10 @@ var routes     = require('./routes');
 var mongoose = require("mongoose");
 
 mongoURI = 'mongodb://localhost/restdb';
-//mongoose.connect(process.env.MOGODB_URI || mongoURI);
+mongoose.connect(process.env.MONGODB_URI || mongoURI);
 
 //MOGODB_URI:
-mongoose.connect("mongodb://heroku_frcr5b76:algam1kphefimb149iis04400k@ds141098.mlab.com:41098/heroku_frcr5b76");
+//mongoose.connect("mongodb://heroku_frcr5b76:algam1kphefimb149iis04400k@ds141098.mlab.com:41098/heroku_frcr5b76");
 
 //MONGODB_URI
 //mongoose.connect("mongodb://heroku_porko:td20129395@ds161931.mlab.com:61931/heroku_k62d4cjg");
