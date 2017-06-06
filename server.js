@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
  
 // Set port
-var port = process.env.PORT || 8080;        // set the port
+//var port = process.env.PORT || 8080;        // set the port
  
 // Define a prefix for all routes
 // Can define something unique like MyRestAPI
@@ -20,5 +20,8 @@ var port = process.env.PORT || 8080;        // set the port
 app.use('/', routes);
  
 // Start server listening on port 8080
-app.listen(port);
+app.listen(process.env.PORT || 3000, function(){
+  console.log("Express server listening on port %d in %s mode", this.address().port, app.settings.env);
+});
+
 console.log('RESTAPI listening on port: ' + port);
