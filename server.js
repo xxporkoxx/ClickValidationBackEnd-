@@ -6,7 +6,7 @@ var routes     = require('./routes');
 var mongoose = require("mongoose");
 
 mongoURI = 'mongodb://localhost/restdb';
-mongoose.connect(process.env.MONGOLAB_URI ||process.env.MONGODB_URI|| mongoURI);
+mongoose.connect(process.env.MOGODB_URI || mongoURI);
 
 console.log("MOGOLAB_URI: "+process.env.MONGOLAB_URI+"MOGODB_URI: "+ process.env.MONGODB_URI+"MOGO_URI: "+ mongoURI);
  
