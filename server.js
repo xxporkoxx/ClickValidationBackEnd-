@@ -5,8 +5,10 @@ var routes     = require('./routes');
 
 var mongoose = require("mongoose");
 
-mongoURI = 'mongodb://heroku_frcr5b76:algam1kphefimb149iis04400k@ds141098.mlab.com:41098/heroku_frcr5b76';
-mongoose.connect(process.env.MONGOLAB_URI );
+mongoURI = 'mongodb://localhost/restdb';
+mongoose.connect(process.env.MONGOLAB_URI ||process.env.MONGODB_URI|| mongoURI);
+
+console.log("MOGOLAB_URI: "+process.env.MONGOLAB_URI+"MOGODB_URI: "+ process.env.MONGODB_URI+"MOGO_URI: "+ mongoURI);
  
 // express app will use body-parser to get data from POST
 app.use(bodyParser.urlencoded({ extended: true }));
