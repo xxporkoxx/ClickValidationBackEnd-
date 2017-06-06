@@ -6,7 +6,7 @@ var routes     = require('./routes');
 var mongoose = require("mongoose");
 
 mongoURI = 'mongodb://heroku_frcr5b76:algam1kphefimb149iis04400k@ds141098.mlab.com:41098/heroku_frcr5b76';
-mongoose.connect(process.env.MONGOLAB_URI || mongoURI);
+mongoose.connect(process.env.MONGOLAB_URI );
  
 // express app will use body-parser to get data from POST
 app.use(bodyParser.urlencoded({ extended: true }));
