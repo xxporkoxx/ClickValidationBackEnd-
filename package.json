@@ -2,7 +2,7 @@
   "name": "clickvalidationbackend",
   "version": "1.0.0",
   "description": "Backend for a Validation app for the Click project. It simulates a device and its functionalities",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
