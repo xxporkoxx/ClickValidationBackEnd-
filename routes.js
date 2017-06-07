@@ -175,8 +175,34 @@ router.get('/', function(req, res) {
 			    else
 			    	res.json({message: "Error: careTaker not find"});
 			});
-	});
+		})
+		.get(function(req, res){
+			findCareTakerFromID({'_id':req.params.caretaker_id},function(caretakerObj){
+				if(caretakerObj!=null){
+					res.json(caretakerObj);
+					//TRatar o erro que cai nesse if do sucesso mas nao retorna o cuidador
+					/*{
+				  "stack": "Error\n    at MongooseError.CastError (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\mongoose\\lib\\error\\cast.js:18:16)\n    at ObjectId.cast (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\mongoose\\lib\\schema\\objectid.js:134:13)\n    at ObjectId.castForQuery (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\mongoose\\lib\\schema\\objectid.js:187:17)\n    at module.exports (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\mongoose\\lib\\cast.js:205:32)\n    at Query.cast (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\mongoose\\lib\\query.js:2492:10)\n    at Query.findOne (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\mongoose\\lib\\query.js:1237:10)\n    at Function.findOne (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\mongoose\\lib\\model.js:1160:13)\n    at findCareTakerFromID (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\routes.js:193:13)\n    at C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\routes.js:180:4\n    at Layer.handle [as handle_request] (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\express\\lib\\router\\route.js:137:13)\n    at next (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\express\\lib\\router\\route.js:131:14)\n    at Route.dispatch (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\express\\lib\\router\\route.js:112:3)\n    at Layer.handle [as handle_request] (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\express\\lib\\router\\index.js:281:22\n    at param (C:\\Users\\DiegoMello\\Documents\\ClickValidationBackEnd\\node_modules\\express\\lib\\router\\index.js:354:14)",
+				  "message": "Cast to ObjectId failed for value \"591b062cbb16b8ff60445f5\" at path \"_id\"",
+				  "name": "CastError",
+				  "kind": "ObjectId",
+				  "value": "591b062cbb16b8ff60445f5",
+				  "path": "_id"
+				}*/
+				}
+				else
+					res.json({message: "CareTaker Not Found"});		
+			});
+		});
 	
+	function findCareTakerFromID(careTakerId, res){
+		CareTaker.findOne(careTakerId ,function (err, caretaker){
+			if(caretaker)
+				res(caretaker);
+			else
+				res(err);
+		});
+	}
 
 
 //CALL ROUTES
