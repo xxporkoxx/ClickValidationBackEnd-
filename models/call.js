@@ -5,9 +5,9 @@ var Patient    	= require('./patient');
  
 var callSchema   = new Schema({
   calltype: Number,
-  updated: { type: Date, default: Date.now },
+  updated: { type: Date },
   callstatus: Number,
-  call_solved_at: { type: Date, default: Date.now }
+  call_solved_at: { type: Date }
 });
 
 callSchema.pre('remove', function(next){

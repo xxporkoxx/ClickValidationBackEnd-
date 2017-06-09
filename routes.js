@@ -222,12 +222,12 @@ router.get('/', function(req, res) {
 										CALL_STATUS_WATING_TO_SERVE = 1;    
 										CALL_STATUS_ON_THE_WAY = 2;    
 										CALL_STATUS_SERVED = 3;
-			"patient_id": id do paciente que esta fazendo a chamada*/
+			"patientid": id do paciente que esta fazendo a chamada*/
 
 	.post(function(req,res){
 		var call = new Call();
 
-		call.updated = req.body.updated;
+		call.updated = Date.now();
 		call.calltype = req.body.calltype;
 		call.callstatus = req.body.callstatus;
 
@@ -251,6 +251,30 @@ router.get('/', function(req, res) {
     		}
 		});
 	})
+	.put(function(req,res){
+		console.log("CALLID" + req.body.callid)
+		Call.findOneAndUpdate(
+		   { "_id": req.body.callid },
+		   { "$set": {  "callstatus": req.body.callstatus, "call_solved_at": Date.now()}},
+		   {new:true},
+		   function(err,doc) {
+		     // work here
+		     if(err)
+		     	res.json({message:"Error: Failed to update call "+req.body.callid})
+		     else
+		     	res.json(doc);
+		   }
+		);
+	})
+
+	function findCallFromID(callId, res){
+		Call.findOne(callId ,function (err, call){
+			if(call)
+				res(call);
+			else
+				res(err);
+		});
+	}
 
 //ARGSkey: "call_id": id of the call 
 	router.route('/calls/:call_id')
