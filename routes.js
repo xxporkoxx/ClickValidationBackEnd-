@@ -215,7 +215,7 @@ router.get('/', function(req, res) {
 			});
 		})
 
-/*ARGSkey: 	"updated": data da chamada
+/*ARGSkey: 	"created_at": data da chamada
 			"calltype": numero que identifica o tipo de chamada : 1-SOS / 2-BANHEIRO / 3-ASSISTENCIA / 4-SEDE
 			"callstatus": numero que identifica 
 			o status atual da chamada :	CALL_STATUS_INITIALIZATION = 0;    
@@ -227,7 +227,7 @@ router.get('/', function(req, res) {
 	.post(function(req,res){
 		var call = new Call();
 
-		call.updated = Date.now();
+		call.created_at = Date.now();
 		call.calltype = req.body.calltype;
 		call.callstatus = req.body.callstatus;
 
@@ -250,8 +250,17 @@ router.get('/', function(req, res) {
 				});
     		}
 		});
-	})
-	.put(function(req,res){
+	});
+
+
+/*ARGSKEYS:  callid:  id sa chamada a ser atualizada
+			callstatus:  "callstatus": numero que identifica 
+			o status atual da chamada :	CALL_STATUS_INITIALIZATION = 0;    
+										CALL_STATUS_WATING_TO_SERVE = 1;    
+										CALL_STATUS_ON_THE_WAY = 2;    
+										CALL_STATUS_SERVED = 3;*/
+	router.route('/solvecall')
+	.post(function(req,res){
 		console.log("CALLID" + req.body.callid)
 		Call.findOneAndUpdate(
 		   { "_id": req.body.callid },
@@ -266,6 +275,17 @@ router.get('/', function(req, res) {
 		   }
 		);
 	})
+
+	router.route('/calls/:call_id').get(
+		function(req,res){	
+		Call.findOne({'_id': req.params.call_id}, function(err, call){
+			if(call){
+			    res.json(call);
+			}
+			else
+			   	res.json({message: "Error: call not find"});
+		});
+	});
 
 	function findCallFromID(callId, res){
 		Call.findOne(callId ,function (err, call){
