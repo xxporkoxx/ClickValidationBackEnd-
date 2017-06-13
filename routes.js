@@ -331,8 +331,10 @@ io.on('connection', function (socket) {
       connectionWithCentral["socket_id"] =     socket.id;
       connectionWithCentral["firebase_id"] = firebase_id;
       
-      connectedCentrals.push(connectionWithCentral);
-
+      //connectedCentrals.push(connectionWithCentral);
+      //jeito de teste com um só
+      connectedCentrals[0] = connectionWithCentral;
+      
       console.log(connectedCentrals[0])
       	
       socket.emit("centralConnected",connectionWithCentral);
