@@ -3,10 +3,16 @@ var express = require('express');
 var server = require('./server');
 // Get the router
 var router = express.Router();
-
+/*
+var server   = require('http').Server(server.app);
+var io       = require('socket.io')(server.app);
+*/
 var Patient    	= require('./models/patient');
 var CareTaker   = require('./models/careTaker');
 var Call    	= require('./models/call');
+var Central = require('./models/central');
+
+var connectedCentrals = new Array()
 
  
 function dateDisplayed(timestamp) {
@@ -24,9 +30,6 @@ router.use(function timeLog(req, res, next) {
 router.get('/', function(req, res) {
     res.json({ message: 'Welcome to the REST API' });   
 });
-
-
-
 
 //PATIENTS ROUTES
 	router.route('/patients').get(
@@ -243,8 +246,12 @@ router.get('/', function(req, res) {
 						patient.save(function(error){
 						if(error)
 							res.json({message: "Error: saving the push to calls"});
-						else
+						else{
+							console.log("Emiting newCall to: "+connectedCentrals[0]["socket_id"])
+
+					        io.to(connectedCentrals[0]["socket_id"]).emit('NEW_CALL_RECEIVE_SOCKET_CALLBACK', patient);
 							res.json(patient);
+						}
 						});
 					}
 				});
@@ -266,12 +273,16 @@ router.get('/', function(req, res) {
 		   { "_id": req.body.callid },
 		   { "$set": {  "callstatus": req.body.callstatus, "call_solved_at": Date.now()}},
 		   {new:true},
-		   function(err,doc) {
+		   function(err,call) {
 		     // work here
 		     if(err)
 		     	res.json({message:"Error: Failed to update call "+req.body.callid})
-		     else
-		     	res.json(doc);
+		     else{
+				console.log("Emiting solveCall to: "+connectedCentrals[0]["socket_id"])
+
+		        io.to(connectedCentrals[0]["socket_id"]).emit('SOLVE_CALL_RECEIVE_SOCKET_CALLBACK', call);
+				res.json(call);
+			}
 		   }
 		);
 	})
@@ -308,6 +319,33 @@ router.get('/', function(req, res) {
 			    	res.json({message: "Error: call not find"});
 			});
 	});
+
+
+io.on('connection', function (socket) {
+  console.log('\n ===== USER CONNECTED =====\n');
+  socket.emit("socketConnected","teste");
+  
+  socket.on("CONNECT_CENTRAL_EMIT_SOCKET",function(firebase_id){
+    //Central.findOne({'_firebaseId': centralFirebaseId}, function(err, call){
+      var connectionWithCentral = {}
+      connectionWithCentral["socket_id"] =     socket.id;
+      connectionWithCentral["firebase_id"] = firebase_id;
+      
+      connectedCentrals.push(connectionWithCentral);
+
+      console.log(connectedCentrals[0])
+      	
+      socket.emit("centralConnected",connectionWithCentral);
+  });
+
+
+//TESTAR ainda não foi testada
+  socket.on("disconnectCentral", function (connectionWithCentral) {
+    console.log('\n ==== USER DISCONNECTED ====== \n');
+    connectedCentrals.find(connectionWithCentral["socketId"]).pop()
+    clientSocket.emit('userDisconnected');
+  });
+});
 
 
 module.exports = router;

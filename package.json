@@ -9,11 +9,12 @@
   "author": "Diego MEllo",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "~1.13.3",
     "express": "^4.15.2",
     "mongoose": "~4.1.0",
-    "body-parser": "~1.13.3"
+    "socket.io": "^2.0.3"
   },
-  "engines" : {
+  "engines": {
     "node": "6.10.3"
   }
 }

@@ -1,0 +1,16 @@
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect('http://localhost:3000');
+  socket.on('socketConnected', function (data) {
+    console.log(data);
+    socket.emit('CONNECT_CENTRAL_EMIT_SOCKET', { _firebaseId: "cVkEq73g8q4:APA91bEUrc5qyRLSGf04HPRmlqyY7PjQYvGNyw8kI65XCKEDCyGYIRbNjgliA1zrIIwnTX24qmjnoQEJnHnW8zAAKuutvjw3hBziKJ1OQu1THu3BLKyrorlFpAlNp9wo1fNOnPjLA2Ac" });
+  });
+
+  socket.on('centralConnected',function(connectionWithCentral){
+  	console.log(connectionWithCentral);
+  });
+
+	socket.on('NEW_CALL_RECEIVE_SOCKET_CALLBACK',function(){
+			
+	});
+</script>
