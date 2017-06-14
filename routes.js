@@ -3,18 +3,12 @@ var express = require('express');
 var server = require('./server');
 // Get the router
 var router = express.Router();
-/*
-var server   = require('http').Server(server.app);
-var io       = require('socket.io')(server.app);
-*/
+
 var Patient    	= require('./models/patient');
 var CareTaker   = require('./models/careTaker');
 var Call    	= require('./models/call');
 var Central = require('./models/central');
 
-var connectedCentrals = new Array()
-
- 
 function dateDisplayed(timestamp) {
     var date = new Date(timestamp);
     return (date.getMonth() + 1 + '/' + date.getDate() + '/' + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds());
@@ -66,6 +60,7 @@ router.get('/', function(req, res) {
 
 
 /*ARGSkey 	name: patient name 						STRING -> REQUIRED AND UNIQUE
+			central_id: central id 					STRING -> REQUIRED
 			age: patient age 						NUMBER
 			disease: disease that the patient have 	STRING
 			gender: gender of the patient 			STRING -> m or f
@@ -81,13 +76,28 @@ router.get('/', function(req, res) {
 			patient.gender 	= req.body.gender;
 			patient.patientdegree = req.body.patientdegree;
 
-			patient.save(function(error){
-				if (error)
-      				res.json({error: "Error creating patient: Name must be unique and required "});
-    			else
-					res.json(patient);		
-			});
-	})
+
+			Central.findById(req.body.central_id,function(error,central){
+				if(error || central == null)
+					res.json({message: "Error: Could not found central ID: "+req.body.central_id+" Wrong or must create it!"});
+				else{
+					patient.save(function(error){
+						if(error)
+							res.json(error.message);
+						else{
+							central.patients.push(patient._id);
+							central.save(function(error){
+								if(error)
+									res.json({message: "Error: saving the push to patients"});
+								else{
+									res.json(patient);
+								}
+							})
+						}
+					})
+				}
+			})
+		})
 
 
 //ARGS:    	patientName: Nome do Paciente
@@ -234,34 +244,42 @@ router.get('/', function(req, res) {
 		call.calltype = req.body.calltype;
 		call.callstatus = req.body.callstatus;
 
-		call.save(function(error){
-			if (error)
-      			res.json({error: "Error: saving the call"});
-    		else{
-    			Patient.findById(req.body.patientid,function(error,patient){
-					if(error || patient == null)
-						res.json({message: "Error: Could not found patient ID: "+req.body.patientid});
-					else{
-						patient.calls.push(call._id);
+		
+		Patient.findById(req.body.patientid,function(error,patient){
+			if(error || patient == null)
+				res.json({message: "Error: Could not found patient ID: "+req.body.patientid});
+			else{
+				call.save(function(error){
+					if (error)
+      					res.json({error: "Error: saving the call"});
+      				else{
+      					patient.calls.push(call._id);
 						patient.save(function(error){
-						if(error)
-							res.json({message: "Error: saving the push to calls"});
-						else{
-							console.log("Emiting newCall to: "+connectedCentrals[0]["socket_id"])
-
-					        io.to(connectedCentrals[0]["socket_id"]).emit('NEW_CALL_RECEIVE_SOCKET_CALLBACK', patient);
-							res.json(patient);
-						}
+							if(error)
+								res.json({message: "Error: saving the push to calls"});
+							else{
+								Central.findOne({'patients' : patient.id},function(error, central){
+									console.log(central)
+									if(error)
+										console.log(error.message)
+									else{
+										io.to(central.socket_id).emit('NEW_CALL_ON_SOCKET_CALLBACK', call);
+										res.json(patient);
+									}
+								})
+							}
 						});
-					}
-				});
-    		}
+      				}
+      			});
+			}
 		});
+
 	});
 
 
 /*ARGSKEYS:  callid:  id sa chamada a ser atualizada
 			callstatus:  "callstatus": numero que identifica 
+			patient_id: id do paciente que executou a chamada
 			o status atual da chamada :	CALL_STATUS_INITIALIZATION = 0;    
 										CALL_STATUS_WATING_TO_SERVE = 1;    
 										CALL_STATUS_ON_THE_WAY = 2;    
@@ -278,10 +296,15 @@ router.get('/', function(req, res) {
 		     if(err)
 		     	res.json({message:"Error: Failed to update call "+req.body.callid})
 		     else{
-				console.log("Emiting solveCall to: "+connectedCentrals[0]["socket_id"])
-
-		        io.to(connectedCentrals[0]["socket_id"]).emit('SOLVE_CALL_RECEIVE_SOCKET_CALLBACK', call);
-				res.json(call);
+				Central.findOne({'patients' : req.body.patient_id},function(error, central){
+					console.log(central)
+					if(error)
+						console.log(error.message)
+					else{
+						io.to(central.socket_id).emit('NEW_CALL_ON_SOCKET_CALLBACK', call);
+						res.json(call);
+					}
+				})
 			}
 		   }
 		);
@@ -320,32 +343,99 @@ router.get('/', function(req, res) {
 			});
 	});
 
+router.route('/centrals')
+	.get(function(req,res){
+		Central.find(function(err, centrals){
+			if(err)
+				res.send(err);
+			res.json(centrals);
+		});
+	})
+	.post(function(req,res){
+		var central = new Central();
+
+		central.name 		= req.body.name;
+		central.firebase_id = req.body.firebase_id;
+
+		central.save(function(error){
+			if (error)
+      			res.json({error: "Error: creating Central - name must be unique and required "});
+    		else
+				res.json(central);
+		});
+	})
+
+router.route('/centrals/:firebase_id')
+	.get(function (req,res){
+		Central.findOne({'firebase_id':req.params.firebase_id}, function(err, central){
+			if(err)
+				res.json({message:"Could not find Central"})
+			else
+				res.json(central)
+		})
+	})
+
 
 io.on('connection', function (socket) {
   console.log('\n ===== USER CONNECTED =====\n');
-  socket.emit("socketConnected","teste");
+  socket.emit("socketConnected","Connected!");
   
-  socket.on("CONNECT_CENTRAL_EMIT_SOCKET",function(firebase_id){
-    //Central.findOne({'_firebaseId': centralFirebaseId}, function(err, call){
-      var connectionWithCentral = {}
-      connectionWithCentral["socket_id"] =     socket.id;
-      connectionWithCentral["firebase_id"] = firebase_id;
-      
-      //connectedCentrals.push(connectionWithCentral);
-      //jeito de teste com um só
-      connectedCentrals[0] = connectionWithCentral;
-      
-      console.log(connectedCentrals[0])
-      	
-      socket.emit("centralConnected",connectionWithCentral);
+  socket.on("CONNECT_CENTRAL_TO_SOCKET",function (firebase_id) {
+    	if(firebase_id!=null){
+    		console.log("FirebaseID: "+firebase_id)
+
+			Central.findOneAndUpdate(
+			   { "firebase_id": firebase_id },
+			   { "$set": {  "socket_id": socket.id}},
+			   {new:true},
+			   function (err,central) {
+			     if(err || central == null){
+			    	socket.emit("CONNECT_CENTRAL_ERROR_EMIT","Error Updating");
+			    	console.log("ERRR Updating")
+			     }
+			     else{
+			     	console.log("Central: ")
+			     	console.log(central)
+			        socket.emit('CONNECT_CENTRAL_SUCESS_EMIT', central);
+				}
+			   }
+			);
+    	}
+    	else{
+	    	socket.emit("CONNECT_CENTRAL_ERROR_EMIT","Missing 'firebase_id' field");
+    		console.log("Missing 'firebase_id' field")
+    	}
   });
 
 
 //TESTAR ainda não foi testada
-  socket.on("disconnectCentral", function (connectionWithCentral) {
+  socket.on("DISCONNECT_CENTRAL", function (firebase_id) {
     console.log('\n ==== USER DISCONNECTED ====== \n');
-    connectedCentrals.find(connectionWithCentral["socketId"]).pop()
-    clientSocket.emit('userDisconnected');
+
+    if(firebase_id!=null){
+    		console.log("FirebaseID: "+firebase_id)
+
+			Central.findOneAndUpdate(
+			   { "firebase_id": firebase_id },
+			   { "$set": {  "socket_id": ""}},
+			   {new:true},
+			   function (err,central) {
+			     if(err || central == null){
+			    	socket.emit("CONNECT_CENTRAL_ERROR_EMIT","Error Updating");
+			    	console.log("ERRR Updating")
+			     }
+			     else{
+			     	console.log("Central: ")
+			     	console.log(central)
+				    clientSocket.emit('socketDisconnected');
+				}
+			   }
+			);
+    	}
+    	else{
+	    	socket.emit("CONNECT_CENTRAL_ERROR_EMIT","Missing 'firebase_id' field");
+    		console.log("Missing 'firebase_id' field")
+    	}
   });
 });
 

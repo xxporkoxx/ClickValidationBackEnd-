@@ -9,7 +9,7 @@ var hospitalSchema   = new Schema({
   	required: true,
   	unique: true
   	}
-  centrals: [{ type: Schema.Types.ObjectId, ref: 'Centrals' }],
+  centrals: [{ type: Schema.Types.ObjectId, ref: 'Central' }],
 });
  
 module.exports = mongoose.model('Hospital', hospitalSchema);
