@@ -137,7 +137,7 @@ router.get('/', function(req, res) {
 			});	
 	}
 
-	//ARGSkey: "caretaker_id": id of the caretaker 
+	//ARGSkey: "patient_id": id of the patient 
 	router.route('/patients/:patient_id')
 		.delete(function(req, res){
 			Patient.findOneAndRemove({'_id': req.params.patient_id}, function(err, patient) {
@@ -276,6 +276,18 @@ router.get('/', function(req, res) {
 
 	});
 
+	//ARGSkey: "patient_id": id of the patient 
+	router.route('/calls/:call_id')
+		.delete(function(req, res){
+			Call.findOneAndRemove({'_id': req.params.call_id}, function(err, call) {
+			    if(call){
+			    	call.remove();
+			    	res.json({message: "Call removed Successfully"});
+			    }
+			    else
+			    	res.json({message: "Error: call not found"});
+			});
+	});
 
 /*ARGSKEYS:  callid:  id sa chamada a ser atualizada
 			callstatus:  "callstatus": numero que identifica 
