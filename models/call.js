@@ -5,6 +5,7 @@ var Patient    	= require('./patient');
  
 var callSchema   = new Schema({
   calltype: Number,
+  name: String,
   created_at: { type: Date },
   updated_at: { type: Date },
   callstatus: Number,

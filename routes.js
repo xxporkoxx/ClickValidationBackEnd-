@@ -243,12 +243,12 @@ router.get('/', function(req, res) {
 		call.created_at = Date.now();
 		call.calltype = req.body.calltype;
 		call.callstatus = req.body.callstatus;
-
 		
 		Patient.findById(req.body.patientid,function(error,patient){
 			if(error || patient == null)
 				res.json({message: "Error: Could not found patient ID: "+req.body.patientid});
 			else{
+				call.name = patient.name;
 				call.save(function(error){
 					if (error)
       					res.json({error: "Error: saving the call"});
@@ -296,12 +296,17 @@ router.get('/', function(req, res) {
 		     if(err)
 		     	res.json({message:"Error: Failed to update call "+req.body.callid})
 		     else{
+		     	console.log("PATIENT_ID: "+req.body.patient_id)
 				Central.findOne({'patients' : req.body.patient_id},function(error, central){
-					console.log(central)
-					if(error)
-						console.log(error.message)
+					console.log("CENTRALSELECTED: "+central)
+					if(error||central==null){
+						if(error)
+							console.log(error.message)
+						res.json({message: "Error: Central could not be found"})						
+					}
 					else{
-						io.to(central.socket_id).emit('NEW_CALL_ON_SOCKET_CALLBACK', call);
+						console.log('SOLVE_CALL_SOCKET_CALLBACK', call)
+						io.to(central.socket_id).emit('SOLVE_CALL_SOCKET_CALLBACK', call);
 						res.json(call);
 					}
 				})
@@ -390,8 +395,8 @@ io.on('connection', function (socket) {
 			   {new:true},
 			   function (err,central) {
 			     if(err || central == null){
-			    	socket.emit("CONNECT_CENTRAL_ERROR_EMIT","Error Updating");
-			    	console.log("ERRR Updating")
+			    	socket.emit("CONNECT_CENTRAL_ERROR_EMIT","Error Updating, Could not find Central");
+			    	console.log("ERRR Updating, could not find Central")
 			     }
 			     else{
 			     	console.log("Central: ")
@@ -427,7 +432,7 @@ io.on('connection', function (socket) {
 			     else{
 			     	console.log("Central: ")
 			     	console.log(central)
-				    clientSocket.emit('socketDisconnected');
+				    socket.emit('socketDisconnected');
 				}
 			   }
 			);
